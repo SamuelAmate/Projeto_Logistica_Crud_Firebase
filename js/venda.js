@@ -11,53 +11,12 @@ const firebaseConfig = {
 // Inicializa Firebase
 firebase.initializeApp(firebaseConfig)
 const db = firebase.database().ref('Estoque')
-
-// Carregar Estoque
-function carregarEstoque() {
-  db.on('value', (snapshot) => {
-    const tbody = $('#tabelaEstoque')
-    tbody.empty()
-    snapshot.forEach((child) => {
-      const user = child.val()
-      const key = child.key
-      tbody.append(`
-        <tr>
-          <td>${user.nomeProduto}</td>
-          <td>${user.nomeDistribuidora}</td>
-          <td>${user.quantidadeProduto}</td>
-          <td>
-            <button class="btn btn-warning btn-sm edit-btn" data-id="${key}">Editar</button>
-            <button class="btn btn-danger btn-sm delete-btn" data-id="${key}">Excluir</button>
-          </td>
-        </tr>
-      `)
-    })
-  })
-}
-
-// Salvar Estoque (create/update)
-$('#formEstoque').submit(function (e) {
-  e.preventDefault()
-
-  const id = $('#id').val()
-  const nomeProduto = $('#txtProduto').val()
-  const nomeDistribuidora = $('#txtDistribuidora').val()
-  const quantidadeProduto = $('#txtQuantidade').val()
-
-  if (id) {
-    db.child(id).update({ nomeProduto, nomeDistribuidora, quantidadeProduto })
-  } else {
-    db.push({ nomeProduto, nomeDistribuidora, quantidadeProduto })
-  }
-
-  this.reset()
-  $('#id').val('')
-})
+const dbVenda = firebase.database().ref('Venda')
 
 // Editar
 $(document).on('click', '.edit-btn', function () {
   const id = $(this).data('id')
-  db.child(id)
+  dbVenda.child(id)
     .get()
     .then((snapshot) => {
       const user = snapshot.val()
@@ -72,12 +31,12 @@ $(document).on('click', '.edit-btn', function () {
 $(document).on('click', '.delete-btn', function () {
   const id = $(this).data('id')
   if (confirm('Tem certeza que deseja excluir?')) {
-    db.child(id).remove()
+    dbVenda.child(id).remove()
   }
 })
 
-function editarEstoque() {
-    var conteudo = document.getElementById("editarEstoque");
+function editarVenda() {
+    var conteudo = document.getElementById("editarVenda");
     if (conteudo.style.display === "none") {
       conteudo.style.display = "block";
     } else {
@@ -88,12 +47,13 @@ function editarEstoque() {
 
 function carregarProdutos() {
   db.on('value', (snapshot) => {
-    const select = $('#selectProdutos')
+    const select = $('#nomeProduto')
     select.empty()
     select.append('<option value="" disabled selected>Selecione um produto</option>')
     snapshot.forEach((child) => {
       const produto = child.val()
       const key = child.key
+      
       select.append(`
         <option value="${key}">${produto.nomeProduto}</option>
       `)
@@ -106,27 +66,25 @@ $('#formVenda').submit(function (e) {
   e.preventDefault()
 
   const id = $('#id').val()
-  const SelectProdutos = $('#selectProdutos').val()
+  const nomeProduto = $('#nomeProduto').val()
   const nomeComprador = $('#txtComprador').val()
   const quantidadeProdutoVenda = $('#quantidadeProdutoVenda').val()
   const valorVenda = $('#txtValorVenda').val()
 
   if (id) {
-    db.child(id).update({ SelectProdutos, nomeComprador, quantidadeProdutoVenda, valorVenda })
+    dbVenda.child(id).update({ nomeProduto, nomeComprador, quantidadeProdutoVenda, valorVenda })
   } else {
-    db.push({ SelectProdutos, nomeComprador, quantidadeProdutoVenda, valorVenda })
+    dbVenda.push({ nomeProduto, nomeComprador, quantidadeProdutoVenda, valorVenda })
   }
 
-  user.quantidadeProduto -= quantidadeProdutoVenda;
-  db.child(nomeProduto).update({ quantidadeProduto: user.quantidadeProduto });
-
+  
   this.reset()
   $('#id').val('')
 })
 
 
 function carregarVenda() {
-  db.on('value', (snapshot) => {
+  dbVenda.on('value', (snapshot) => {
     const tbody = $('#tabelaVenda')
     tbody.empty()
     snapshot.forEach((child) => {
@@ -150,5 +108,8 @@ function carregarVenda() {
 
 
 // Inicializar
-carregarEstoque();
 carregarProdutos();
+carregarVenda();
+
+//user.quantidadeProduto -= quantidadeProdutoVenda;
+//db.child(nomeProduto).update({ quantidadeProduto: user.quantidadeProduto });

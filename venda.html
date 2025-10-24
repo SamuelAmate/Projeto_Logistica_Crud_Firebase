@@ -46,9 +46,12 @@
 
       <!-- Formulário -->
       <form id="formVenda" class="row g-3">
-        <div class="col-md-6">
+          <button onclick="editarVenda()" class="btn btn-primary">Adicionar Venda</button>
+          <div id="editarVenda" style="display: none;">
+            <input type="hidden" id="id" />
+          <div class="col-md-6"></div>
           <h3 class="mb-4">Cadastrar Venda</h3>
-          <select id="selectProdutos" class="form-select" style="max-width:300px;">
+          <select id="nomeProduto" class="form-select" style="max-width:300px;">
           <option value="" disabled selected>Selecione um produto</option> 
           </select>
           <label for="nomeComprador" class="form-label">Comprador</label>
@@ -57,10 +60,11 @@
           <input type="number" id="quantidadeProdutoVenda" class="form-control" required />
           <label for="valorVenda" class="form-label">Valor</label>
           <input type="number" id="txtValorVenda" class="form-control" required />
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary">Salvar</button>
+          </div>
         </div>
-        <div class="col-12">
-          <button type="submit" class="btn btn-primary">Salvar</button>
-        </div>
+        
       </form>
 
       <!-- Lista -->
