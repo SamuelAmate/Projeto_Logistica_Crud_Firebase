@@ -19,11 +19,17 @@ $(document).on('click', '.edit-btn', function () {
   dbVenda.child(id)
     .get()
     .then((snapshot) => {
-      const user = snapshot.val()
+      const venda = snapshot.val()
       $('#id').val(id)
-      $('#txtProduto').val(user.nomeProduto)
-      $('#txtDistribuidora').val(user.nomeDistribuidora)
-      $('#txtQuantidade').val(user.quantidadeProduto)
+      $('#nomeProduto').val(venda.nomeProduto)
+      $('#txtComprador').val(venda.nomeComprador)
+      $('#quantidadeProdutoVenda').val(venda.quantidadeProdutoVenda)
+      $('#txtValorVenda').val(venda.valorVenda)
+      $('#editarVenda').show()
+    })
+    .catch(error => {
+      console.error('Erro ao carregar venda:', error)
+      alert('Erro ao carregar dados da venda')
     })
 })
 
@@ -52,10 +58,9 @@ function carregarProdutos() {
     select.append('<option value="" disabled selected>Selecione um produto</option>')
     snapshot.forEach((child) => {
       const produto = child.val()
-      const key = child.key
-      
+      // Mudando para usar o nome do produto como value ao invés do key
       select.append(`
-        <option value="${key}">${produto.nomeProduto}</option>
+        <option value="${produto.nomeProduto}">${produto.nomeProduto}</option>
       `)
     })
   })
@@ -68,14 +73,33 @@ $('#formVenda').submit(function (e) {
   const id = $('#id').val()
   const nomeProduto = $('#nomeProduto').val()
   const nomeComprador = $('#txtComprador').val()
-  const quantidadeProdutoVenda = $('#quantidadeProdutoVenda').val()
   const valorVenda = $('#txtValorVenda').val()
+  const quantidadeProdutoVenda = parseInt($('#quantidadeProdutoVenda').val())
 
-  if (id) {
-    dbVenda.child(id).update({ nomeProduto, nomeComprador, quantidadeProdutoVenda, valorVenda })
-  } else {
-    dbVenda.push({ nomeProduto, nomeComprador, quantidadeProdutoVenda, valorVenda })
-  }
+  // Buscar quantidade disponível no estoque
+  db.orderByChild('nomeProduto').equalTo(nomeProduto).once('value')
+    .then((snapshot) => {
+      const produtoEstoque = snapshot.val()
+      const keyEstoque = Object.keys(produtoEstoque)[0]
+      const quantidadeEstoque = produtoEstoque[keyEstoque].quantidadeProduto
+
+      // Verificar se há quantidade suficiente
+      if (quantidadeProdutoVenda > quantidadeEstoque) {
+        alert('Quantidade insuficiente em estoque!')
+        return
+      }
+
+      // Atualizar quantidade no estoque
+      const novaQuantidade = quantidadeEstoque - quantidadeProdutoVenda
+      db.child(keyEstoque).update({ quantidadeProduto: novaQuantidade })
+        .then(() => {
+          if (id) {
+            dbVenda.child(id).update({ nomeProduto, nomeComprador, quantidadeProdutoVenda, valorVenda })
+          } else {
+            dbVenda.push({ nomeProduto, nomeComprador, quantidadeProdutoVenda, valorVenda })
+          }
+        })
+      })
 
   
   this.reset()
@@ -94,7 +118,7 @@ function carregarVenda() {
         <tr>
           <td>${user.nomeProduto}</td>
           <td>${user.nomeComprador}</td>
-          <td>${user.quantidadeProduto}</td>
+          <td>${user.quantidadeProdutoVenda}</td>
           <td>${user.valorVenda}</td>
           <td>
             <button class="btn btn-warning btn-sm edit-btn" data-id="${key}">Editar</button>
@@ -111,5 +135,3 @@ function carregarVenda() {
 carregarProdutos();
 carregarVenda();
 
-//user.quantidadeProduto -= quantidadeProdutoVenda;
-//db.child(nomeProduto).update({ quantidadeProduto: user.quantidadeProduto });
